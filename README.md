@@ -1,5 +1,7 @@
 # Magic (GPT)8 Ball 🎱
 
+![Tests](https://github.com/NickEngmann/MagicGPT8Ball/actions/workflows/test.yml/badge.svg)
+
 ## Overview
 
 The Magic (GPT)8 Ball is a modern reinvention of the classic fortune-telling toy, powered by AI and IoT technology. It features voice recognition, motion sensing, and real-time AI responses through ChatGPT. When shaken, it records your question through a built-in microphone, processes it using OpenAI's APIs, and displays a mystical response on its integrated circular display.
@@ -263,3 +265,9 @@ This project is licensed under the MIT License.
 - LVGL team for graphics library
 - val.town for serverless hosting
 - Open source community for libraries and tools
+
+## Running Tests
+
+```bash
+pytest
+```
