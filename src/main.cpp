@@ -57,6 +57,31 @@ bool checkForShake()
   return (totalAccel > ACCEL_THRESHOLD);
 }
 
+void ensureWiFiConnected()
+{
+  if (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.println("WiFi disconnected, attempting reconnection...");
+    WiFi.reconnect();
+    unsigned long startAttemptTime = millis();
+    const unsigned long MAX_WAIT_MS = 10000; // Wait up to 10 seconds
+    
+    while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < MAX_WAIT_MS)
+    {
+      delay(100);
+    }
+    
+    if (WiFi.status() == WL_CONNECTED)
+    {
+      Serial.println("WiFi reconnected successfully");
+    }
+    else
+    {
+      Serial.println("WiFi reconnection failed");
+    }
+  }
+}
+
 void uploadWAVFile(uint8_t *buffer, size_t bufferSize)
 {
   if (!buffer || bufferSize == 0)
@@ -81,7 +106,25 @@ void uploadWAVFile(uint8_t *buffer, size_t bufferSize)
 
   HTTPClient http;
   Serial.printf("Uploading WAV file (%d bytes) to val.town\n", bufferSize);
+  
+  // Ensure WiFi is connected before attempting upload
+  ensureWiFiConnected();
+  
+  // Check if we're still connected after attempting reconnection
+  if (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.println("Cannot upload: WiFi not connected");
+    animations.setTriangleColor(255, 0, 0);
+    textManager.setState(TextStateManager::DisplayState::RESPONSE,
+                         String("Error: No WiFi"));
+    return;
+  }
+  
   http.begin(valtownUrl);
+  
+  // Set timeout for HTTP connection
+  http.setTimeout(10000); // 10 second timeout
+  http.setConnectTimeout(5000); // 5 second connect timeout
 
   // Set headers for multipart form data and authentication
   String boundary = "AudioBoundary";
