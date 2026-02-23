@@ -2,4 +2,10 @@
 .vscode
 *.wav
 .env
-data/.env
+data/.env-e 
+# Build artifacts
+*.pyc
+__pycache__/
+*.o
+*.so
+.pytest_cache/
