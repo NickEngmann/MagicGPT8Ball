@@ -47,7 +47,19 @@ const char *responses[] = {
     "My reply is no",
     "Outlook not so good",
     "Very doubtful",
-    "Concentrate and ask again"};
+    "Concentrate and ask again",
+    "Signs point to yes",
+    "Without a doubt",
+    "You may rely on it",
+    "As I see it, yes",
+    "Most likely",
+    "Yes, definitely",
+    "It is decidedly so",
+    "Better not tell you now",
+    "Cannot predict now",
+    "Yes",
+    "No",
+    "The answer is clear"};
 
 bool checkForShake()
 {
