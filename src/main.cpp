@@ -113,11 +113,7 @@ void uploadWAVFile(uint8_t *buffer, size_t bufferSize)
   memcpy(postData + offset, buffer, bufferSize);
   offset += bufferSize;
   memcpy(postData + offset, tail.c_str(), tail.length());
-  unsigned long currentTime = millis();
-  lastUIUpdate = currentTime;
-  textManager.update(currentTime);
-  animations.setLabelText(textManager.getCurrentText().c_str());
-  lv_timer_handler();
+  
   // Send the POST request
   int httpResponseCode = http.POST(postData, totalSize);
   free(postData);
