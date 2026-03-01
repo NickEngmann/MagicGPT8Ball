@@ -2,259 +2,86 @@
 
 ## Overview
 
-The Magic (GPT)8 Ball is a modern reinvention of the classic fortune-telling toy, powered by AI and IoT technology. It features voice recognition, motion sensing, and real-time AI responses through ChatGPT. When shaken, it records your question through a built-in microphone, processes it using OpenAI's APIs, and displays a mystical response on its integrated circular display.
+The Magic (GPT)8 Ball is a modern reinvention of the classic fortune-telling toy, powered by AI and IoT technology. It features voice recognition, motion sensing, and an OLED display. The device records audio when shaken, sends it to OpenAI's Whisper API for transcription, processes it with ChatGPT, and responds with voice synthesis.
 
 ## Features
 
-- Voice-activated recording with automatic silence detection
-- Motion-based activation using QMI8658 6-axis IMU
-- Real-time transcription using OpenAI's Whisper API
-- AI-powered responses from ChatGPT
-- Smooth animations and UI transitions
-- RGB LED status indicator
-- Haptic feedback through dual vibration motors
-- WiFi manager for easy network setup
-- Offline mode with classic Magic 8 Ball responses
-- Built-in battery management and charging
+- Voice recognition using OpenAI's Whisper API
+- AI-powered responses using ChatGPT
+- Motion detection with ESP32-S3
+- OLED display for visual responses
+- WAV file upload server for testing and development
 
-## Hardware Requirements
+## Hardware
 
-![Project Wiring Diagram](img/1.png)
+- ESP32-S3 microcontroller
+- Waveshare ESP32-S3 OLED board
+- Microphone for audio input
+- OLED display for visual output
 
-### Core Components
+## Software Dependencies
 
-- Waveshare ESP32-S3 1.28" LCD Development Board
-  - ESP32-S3 microcontroller
-  - 1.28" Round LCD Display (240×240 resolution)
-  - Built-in QMI8658 6-axis IMU
-  - USB-C for programming and charging
-- MAX9814 Microphone Amplifier Module
-- 2x Vibration Motors
-- WS2812B RGB LED
-- 1200mAh LiPo Battery
-- 3D printed enclosure (files TBD)
+- PlatformIO for ESP32 firmware development
+- Python 3.12+ for WAV upload server
+- OpenAI API keys for Whisper and ChatGPT
 
-### Pin Connections
+## Installation
 
-#### Built-in Components (ESP32-S3 Board)
+### ESP32 Firmware
 
-- LCD Display
-  - DC: GPIO8
-  - CS: GPIO9
-  - CLK: GPIO10
-  - MOSI: GPIO11
-  - RST: GPIO12
-  - BL: GPIO40
-- QMI8658 IMU
-  - SDA: GPIO6
-  - SCL: GPIO7
+1. Install PlatformIO IDE or CLI
+2. Clone this repository
+3. Configure your OpenAI API keys in `.env` (see `.env.example`)
+4. Build and upload: `pio run --target upload`
 
-#### External Components
+### WAV Upload Server
 
-- MAX9814 Microphone
-  - VDD → 3.3V
-  - GND → GND
-  - OUT → GPIO2 (ADC1_CH1)
-- Vibration Motors
-  - Motor 1: GPIO5
-  - Motor 2: GPIO13
-- RGB LED: GPIO3
+The project includes a Python Flask server for uploading WAV audio files:
 
-## Software Setup
-
-### Development Environment
-
-1. Install Visual Studio Code
-2. Install PlatformIO IDE extension
-3. Clone the repository:
-
-   ```bash
-   git clone https://github.com/NickEngmann/MagicGPT8Ball.git
-   cd MagicGPT8Ball
-   ```
-
-### Dependencies
-
-- WiFiManager for network configuration
-- ArduinoJson (7.x) for API communication
-- LVGL for UI and animations
-- TFT_eSPI for display driver
-- Adafruit_NeoPixel for RGB LED control
-
-### APIs and Services
-
-1. Set up a val.town account:
-   - Deploy the included `val.town.js` function
-   - Update the endpoint URL in `main.cpp`
-2. Configure OpenAI API key in val.town environment
-
-### Building and Flashing
-
-1. Open project in VS Code with PlatformIO
-2. Install dependencies:
-
-   ```bash
-   pio lib install
-   ```
-
-3. Build and upload:
-
-   ```bash
-   pio run --target upload
-   ```
-
-### Environment Configuration
-
-1. In the project root directory, create a `.env` file with your val.town endpoint and device token:
-
-   ```ini
-   VALTOWN_URL="https://your-valtown-endpoint.val.run"
-   DEVICE_TOKEN="your-device-token"
-   ```
-
-2. For reference, an `.env.example` file is provided:
-
-   ```ini
-   VALTOWN_URL="https://example-valtown-endpoint.val.run"
-   DEVICE_TOKEN="example-device-token"
-   ```
-
-   **Note:** Never commit your actual `.env` file to version control. The `.env.example` file serves as a template.
-
-3. File locations should follow this structure:
-
-   ```
-   MagicGPT8Ball/
-   ├── .env                  # Your actual configuration (do not commit)
-   ├── .env.example         # Template for others (safe to commit)
-   ├── generate_env.py      # Handles environment setup
-   ├── data/                # Generated during build
-   └── ...
-   ```
-
-4. During build:
-   - The system automatically copies your `.env` file to the device's filesystem
-   - If `.env` is missing, it will use `.env.example` as a fallback
-   - Environment variables are securely stored on the device
-
-5. To update configuration:
-   - Modify `.env` file
-   - Rebuild and upload filesystem:
-
-     ```bash
-     pio run -t uploadfs
-     ```
-
-   - Upload program:
-
-     ```bash
-     pio run -t upload
-     ```
-
-## Usage Instructions
-
-### First-Time Setup
-
-1. Power on the device
-2. Connect to "MagicGPT8Ball" WiFi network
-3. Configure your WiFi through the captive portal
-4. Device will restart and connect to your network
-
-### Daily Use
-
-1. Wake device by moving it or pressing the power button
-2. Wait for "Shake me" prompt
-3. Shake device to activate recording
-4. Speak your question clearly
-5. Wait for response (blue animation indicates processing)
-6. Device will display the AI-generated response
-7. Shake again for a new question
-
-### LED Status Indicators
-
-- Blue pulse: Starting up
-- Solid green: Ready
-- Red blink: Recording
-- Cyan pulse: Processing
-- Yellow blink: Offline mode
-- Purple blink: Error state
-
-## Advanced Features
-
-### Debug Mode
-
-Enable detailed logging by uncommenting `#define ENABLE_DEBUG` in the following files:
-
-- `Recorder.h` - Audio debugging
-- `main.cpp` - System debugging
-
-### Voice Detection Parameters
-
-Adjust sensitivity in `Recorder.h`:
-
-- `AUDIO_THRESHOLD`: Voice detection threshold
-- `SILENCE_TIMEOUT`: Silence duration before stopping
-- `MAX_RECORD_SECONDS`: Maximum recording duration
-
-### Animation Settings
-
-Customize animations in `Animations.h`:
-
-- `MOTION_SMOOTHING`: Movement smoothness
-- `GYRO_SENSITIVITY`: Motion sensitivity
-- `IDLE_AMPLITUDE`: Idle animation range
-
-## Project Structure
-
-```
-├── src/
-│   ├── main.cpp              # Main application logic
-│   ├── Animations.*          # Display animations
-│   ├── Recorder.*           # Audio recording
-│   ├── TextStateManager.*   # Display text handling
-│   ├── VibrationManager.*   # Haptic feedback
-│   └── LEDLogger.*         # RGB LED control
-├── lib/
-│   └── QMI8658/            # IMU driver
-└── val.town.js             # Serverless API handler
+```bash
+pip install flask
+python wav_server.py
 ```
 
-## Troubleshooting
+The server will start on `http://0.0.0.0:5000` and accept WAV file uploads at the `/upload_wav` endpoint.
 
-### Common Issues
+## WAV Upload Server API
 
-1. WiFi Connection Problems
-   - Reset configuration by holding boot button
-   - Check serial output for connection status
-   - Verify network credentials in portal
+### POST /upload_wav
 
-2. Recording Issues
-   - Check microphone connections
-   - Verify ADC readings in debug mode
-   - Adjust voice detection threshold
+Uploads a WAV file from the ESP32 device.
 
-3. Display Problems
-   - Verify SPI connections
-   - Check power supply voltage
-   - Update TFT_eSPI configuration
+**Request:**
+- Method: POST
+- Endpoint: `/upload_wav`
+- Content-Type: multipart/form-data
+- File field: `file`
 
-### Error Messages
+**Response:**
+- 200 OK: "File uploaded successfully"
+- Files are saved to `wav_uploads/` directory with timestamps
 
-- "Wifi: X" - No network connection
-- "Error: processing request" - API communication failed
-- "Error: recording failed" - Audio capture issue
+## Testing
+
+Run tests with pytest:
+
+```bash
+python -m pytest tests/ -v
+```
 
 ## Contributing
 
+Contributions are welcome! Please follow these steps:
+
 1. Fork the repository
-2. Create a feature branch
-3. Follow existing code style
-4. Add unit tests if applicable
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
 
