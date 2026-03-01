@@ -8,7 +8,11 @@ app = Flask(__name__)
 UPLOAD_DIR = 'wav_uploads'
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-@app.route('/upload_wav', methods=['POST'])
+@app.route('/', methods=['GET'])
+def root():
+    return 'Welcome to WAV Server', 200
+
+@app.route('/upload', methods=['POST'])
 def upload_wav():
     if 'file' not in request.files:
         return 'No file part', 400
