@@ -103,6 +103,8 @@ The Magic (GPT)8 Ball is a modern reinvention of the classic fortune-telling toy
    pio run --target upload
    ```
 
+   This command compiles the firmware and uploads it to the ESP32-S3 board via USB.
+
 ### Environment Configuration
 
 1. In the project root directory, create a `.env` file with your val.town endpoint and device token:
@@ -219,6 +221,55 @@ Customize animations in `Animations.h`:
 └── val.town.js             # Serverless API handler
 ```
 
+## Project Structure
+
+```
+├── src/
+│   ├── main.cpp              # Main application logic
+│   ├── Animations.*          # Display animations
+│   ├── Recorder.*           # Audio recording
+│   ├── TextStateManager.*   # Display text handling
+│   ├── VibrationManager.*   # Haptic feedback
+│   └── LEDLogger.*         # RGB LED control
+├── lib/
+│   └── QMI8658/            # IMU driver
+├── wav_server.py           # Flask server for WAV file uploads
+└── val.town.js             # Serverless API handler
+```
+
+## WAV Server API
+
+The `wav_server.py` component provides a Flask-based HTTP server for receiving WAV audio files from the ESP32-S3 hardware:
+
+### Server Endpoints
+
+- **POST /upload** - Receives WAV files from the device
+  - Content-Type: multipart/form-data
+  - File field name: `file`
+  - Returns: 200 OK with success message
+
+### Running the Server
+
+```bash
+# Install Flask dependency
+pip install flask
+
+# Start the server
+python wav_server.py
+```
+
+The server will listen on `0.0.0.0:5000` and save uploaded files to the `wav_uploads/` directory.
+
+### Docker Deployment
+
+```bash
+docker run -p 5000:5000 -v $(pwd)/wav_uploads:/app/wav_uploads python:3.12-slim python wav_server.py
+```
+
+### Hardware Integration
+
+The ESP32-S3 device uploads recorded audio files to this server endpoint. The server creates the `wav_uploads/` directory automatically if it doesn't exist. Uploaded files retain their original filenames and are logged with timestamps.
+
 ## Troubleshooting
 
 ### Common Issues
@@ -251,6 +302,13 @@ Customize animations in `Animations.h`:
 3. Follow existing code style
 4. Add unit tests if applicable
 5. Submit a pull request
+
+## Testing
+
+This project currently has no automated test suite. Testing requires:
+- ESP32-S3 hardware for firmware validation
+- Physical device for end-to-end testing
+- Manual testing of wav_server.py with curl or browser uploads
 
 ## License
 
