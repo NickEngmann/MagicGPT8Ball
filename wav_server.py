@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # Create uploads directory if it doesn't exist
 UPLOAD_DIR = 'wav_uploads'
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(UPLOAD_DIR, exist_ok=True)t_ok=True)
 
 @app.route('/upload_wav', methods=['POST'])
 def upload_wav():
