@@ -252,6 +252,50 @@ Customize animations in `Animations.h`:
 4. Add unit tests if applicable
 5. Submit a pull request
 
+## Testing
+
+### Python Components
+The Python scripts (wav_server.py, generate_env.py) can be tested separately:
+
+```bash
+# Install Python dependencies
+pip install flask
+
+# Test wav_server.py
+python wav_server.py
+```
+
+### PlatformIO Build
+To verify the build works:
+
+```bash
+# Install PlatformIO dependencies
+pio lib install
+
+# Build the project
+pio run
+
+# Upload to device
+pio run -t upload
+
+# Upload filesystem
+pio run -t uploadfs
+```
+
+Note: Full hardware testing requires physical ESP32-S3 board with connected peripherals (QMI8658 IMU, MAX9814 microphone, display, vibration motors, RGB LED).
+
+## License
+
+This project is licensed under the MIT License.
+
+## Acknowledgments
+
+- OpenAI for ChatGPT and Whisper APIs
+- Waveshare for ESP32-S3 hardware
+- LVGL team for graphics library
+- val.town for serverless hosting
+- Open source community for libraries and tools
+
 ## License
 
 This project is licensed under the MIT License.
