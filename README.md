@@ -252,6 +252,78 @@ Customize animations in `Animations.h`:
 4. Add unit tests if applicable
 5. Submit a pull request
 
+## Testing
+
+This project is embedded hardware firmware and cannot be tested in a container environment. Testing requires:
+
+- Physical ESP32-S3 development board with QMI8658 IMU
+- Connected microphone array (MAX9814)
+- TFT display (240×240 round LCD)
+- OpenAI API credentials
+
+To build and test on hardware:
+
+```bash
+# Build and upload to device
+pio run --target upload
+
+# Upload filesystem (LittleFS)
+pio run -t uploadfs
+
+# Monitor serial output
+pio monitor
+```
+
+Debug mode can be enabled by uncommenting `#define ENABLE_DEBUG` in `Recorder.h` and `main.cpp` for detailed logging during hardware testing.
+
+## Build & Run
+
+### Prerequisites
+
+- Visual Studio Code with PlatformIO IDE extension
+- ESP32-S3 development board (Waveshare recommended)
+- USB-C cable for programming
+- OpenAI API key
+- val.town account for serverless backend
+
+### Building
+
+1. Open project in VS Code
+2. PlatformIO will automatically install dependencies
+3. Build and upload:
+
+```bash
+pio run --target upload
+```
+
+### Running
+
+This is embedded firmware — it runs on the ESP32-S3 hardware. After uploading:
+
+1. Power on the device
+2. Connect to "MagicGPT8Ball" WiFi network
+3. Configure your WiFi through the captive portal
+4. Device will restart and connect to your network
+
+### Environment Setup
+
+Create a `.env` file in the project root with:
+
+```ini
+VALTOWN_URL="https://your-valtown-endpoint.val.run"
+DEVICE_TOKEN="your-device-token"
+```
+
+The build process automatically copies this to the device's LittleFS filesystem.
+
+## Known Limitations
+
+- Requires physical hardware for any testing
+- No automated test suite available
+- Depends on external OpenAI APIs (requires API key)
+- Requires WiFi connectivity for AI features
+- Offline mode available with classic Magic 8 Ball responses
+
 ## License
 
 This project is licensed under the MIT License.
