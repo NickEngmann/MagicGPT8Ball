@@ -103,6 +103,10 @@ The Magic (GPT)8 Ball is a modern reinvention of the classic fortune-telling toy
    pio run --target upload
    ```
 
+   ```bash
+   pio run --target upload
+   ```
+
 ### Environment Configuration
 
 1. In the project root directory, create a `.env` file with your val.town endpoint and device token:
@@ -249,8 +253,60 @@ Customize animations in `Animations.h`:
 1. Fork the repository
 2. Create a feature branch
 3. Follow existing code style
-4. Add unit tests if applicable
+4. Note: This is embedded hardware firmware — unit tests require physical ESP32-S3 hardware with QMI8658 sensor, microphone, and TFT display
 5. Submit a pull request
+
+## Testing
+
+This project is embedded firmware for ESP32-S3 hardware and cannot be tested in a container environment. Testing requires:
+
+- Physical ESP32-S3 development board (Waveshare 1.28" LCD)
+- QMI8658 6-axis IMU sensor
+- MAX9814 microphone amplifier module
+- 320x240 SPI TFT display (or compatible)
+- I2S microphone array
+- Vibration motors
+- WS2812B RGB LED
+
+### Manual Testing Checklist
+
+1. **Hardware Assembly**
+   - Verify all connections match wiring diagram in img/1.png
+   - Check power supply (1200mAh LiPo battery)
+   - Ensure SPI display connections are secure
+
+2. **Firmware Upload**
+   - Build with `pio run`
+   - Upload with `pio run --target upload`
+   - Verify device boots and displays startup animation
+
+3. **Sensor Calibration**
+   - Test QMI8658 motion detection
+   - Verify microphone audio capture
+   - Check vibration motor response
+
+4. **Network Configuration**
+   - Connect to "MagicGPT8Ball" WiFi network
+   - Configure WiFi via captive portal
+   - Verify internet connectivity
+
+5. **Voice Recognition**
+   - Speak question clearly into microphone
+   - Verify transcription accuracy
+   - Check AI response generation
+
+6. **Display Output**
+   - Verify circular display animations
+   - Check text rendering
+   - Test LED status indicators
+
+### Debug Mode
+
+Enable detailed logging by uncommenting `#define ENABLE_DEBUG` in:
+- `src/Recorder.h` — Audio debugging
+- `src/main.cpp` — System debugging
+
+Connect via serial monitor at 115200 baud to view debug output.
 
 ## License
 
