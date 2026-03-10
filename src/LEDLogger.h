@@ -1,8 +1,14 @@
 #ifndef LED_LOGGER_H
 #define LED_LOGGER_H
 
+#ifdef NATIVE_BUILD
+
+
+#include <functional>
+#else
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
+#endif
 
 class LEDLogger
 {
@@ -41,10 +47,28 @@ public:
   void setBrightness(uint8_t brightness);
   void clear();
 
+#ifdef NATIVE_BUILD
+  uint8_t getPin() const { return _pin; }
+  uint8_t getBrightness() const { return brightness; }
+  SystemState getState() const { return currentState; }
+  LEDPattern getPattern() const { return currentPattern; }
+  void setPin(uint8_t pin) { _pin = pin; }
+#endif
+
   SystemState getCurrentState() const { return currentState; }
   LEDPattern getCurrentPattern() const { return currentPattern; }
 
 private:
+#ifdef NATIVE_BUILD
+  uint8_t _pin;
+  SystemState currentState;
+  LEDPattern currentPattern;
+  unsigned long lastUpdate;
+  float pulseValue;
+  bool increasing;
+  uint32_t currentColor;
+  uint8_t brightness;
+#else
   Adafruit_NeoPixel pixel;
   SystemState currentState;
   LEDPattern currentPattern;
@@ -53,6 +77,7 @@ private:
   bool increasing;
   uint32_t currentColor;
   uint8_t brightness;
+#endif
 
   // Color definitions
   static constexpr uint32_t COLOR_STARTUP = 0x0000FF;     // Blue
