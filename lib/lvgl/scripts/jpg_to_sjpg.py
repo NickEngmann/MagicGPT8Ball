@@ -1,138 +1,196 @@
-##################################################################
-# sjpeg converter script version 1.0
-# Dependencies: (PYTHON-3)
-##################################################################
-SJPG_FILE_FORMAT_VERSION = "V1.00"  #
-JPEG_SPLIT_HEIGHT   = 16
-##################################################################
-import math, os, sys, time
+#!/usr/bin/env python3
+# SJPEG converter script for LVGL
+# Converts JPEG images to split JPEG (sjpg) format for efficient display
+# Dependencies: Python 3, Pillow (PIL)
+
+import math
+import os
+import sys
+import time
 from PIL import Image
 
+# Constants
+SJPG_FILE_FORMAT_VERSION = "V1.00"
+JPEG_SPLIT_HEIGHT = 16
 
-OUTPUT_FILE_NAME = ""
-INPUT_FILE       = ""
+def print_usage():
+    """Print usage information"""
+    print("Usage: python jpg_to_sjpg.py <input_file.jpg>")
+    print("")
+    print("Example: python jpg_to_sjpg.py image.jpg")
+    print("")
+    print("Output files:")
+    print("  <name>.sjpg  - Binary split JPEG file")
+    print("  <name>.c     - C array header file for LVGL")
+    sys.exit(1)
 
+def check_dependencies():
+    """Check if required dependencies are installed"""
+    try:
+        from PIL import Image
+    except ImportError:
+        print("Error: Pillow library not found!")
+        print("Install with: pip install Pillow")
+        sys.exit(1)
 
-if len(sys.argv) == 2:
-    INPUT_FILE = sys.argv[1]
-    OUTPUT_FILE_NAME = INPUT_FILE.split("/")[-1].split("\\")[-1].split(".")[0]
-else:
-    print("usage:\n\t python " + sys.argv[0] + " input_file.jpg")
-    sys.exit(0)
-
-try:
-    im = Image.open(INPUT_FILE)
-except:
-    print("\nFile not found!")
-    sys.exit(0)
-
-
-print("\nConversion started...\n")
-start_time = time.time()
-width, height = im.size
-
-print("Input:")
-print("\t" + INPUT_FILE)
-print("\tRES = " + str(width) + " x " + str(height) + '\n')
-
-
-lenbuf = []
-block_size = JPEG_SPLIT_HEIGHT;
-spilts = math.ceil(height/block_size)
-
-c_code = '''//LVGL SJPG C ARRAY\n#include "lvgl/lvgl.h"\n\nconst uint8_t ''' + OUTPUT_FILE_NAME + '''_map[] = {\n'''
-
-sjpeg_data = bytearray()
-sjpeg = bytearray()
-
-
-row_remaining = height;
-for i in range(spilts):
-    if row_remaining < block_size:
-        crop = im.crop((0, i*block_size, width, row_remaining + i*block_size))
-    else:
-        crop = im.crop((0, i*block_size, width, block_size + i*block_size))
-
-    row_remaining = row_remaining - block_size;
-    crop.save(str(i)+".jpg", quality=90)
-
-
-
-
-for i in range(spilts):
-    f = open(str(i)+".jpg", "rb")
-    a = f.read()
-    f.close()
-    sjpeg_data = sjpeg_data + a
-    lenbuf.append(len(a))
-
-header = bytearray()
-
-#4 BYTES
-header = header + bytearray("_SJPG__".encode("UTF-8"));
-
-#6 BYTES VERSION
-header = header + bytearray(("\x00" + SJPG_FILE_FORMAT_VERSION + "\x00").encode("UTF-8"));
-
-#WIDTH 2 BYTES
-header = header + width.to_bytes(2, byteorder='little');
-
-#HEIGHT 2 BYTES
-header = header + height.to_bytes(2, byteorder='little');
-
-#NUMBER OF ITEMS 2 BYTES
-header = header + spilts.to_bytes(2, byteorder='little');
-
-#NUMBER OF ITEMS 2 BYTES
-header = header + int(JPEG_SPLIT_HEIGHT).to_bytes(2, byteorder='little');
-
-for item_len in lenbuf:
-    # WIDTH 2 BYTES
-    header = header + item_len.to_bytes(2, byteorder='little');
-
-
-data = bytearray()
-
-sjpeg = header + sjpeg_data;
-
-if 1:
-    for i in range(len(lenbuf)):
-        os.remove(str(i) + ".jpg")
-
-
-f = open(OUTPUT_FILE_NAME+".sjpg","wb");
-f.write(sjpeg)
-f.close()
-
-new_line_threshold = 0
-for i in range(len(sjpeg)):
-    c_code = c_code + "\t" + str(hex(sjpeg[i])) + ","
-    new_line_threshold = new_line_threshold + 1
-    if (new_line_threshold >= 16):
-        c_code = c_code + "\n"
+def main():
+    # Check dependencies first
+    check_dependencies()
+    
+    # Parse command line arguments
+    if len(sys.argv) != 2:
+        print_usage()
+    
+    input_file = sys.argv[1]
+    
+    # Extract output filename (handle both Unix and Windows paths)
+    basename = os.path.basename(input_file)
+    output_name = os.path.splitext(basename)[0]
+    
+    # Check if input file exists
+    if not os.path.exists(input_file):
+        print(f"\nError: File not found: {input_file}")
+        sys.exit(1)
+    
+    print("\nConversion started...")
+    start_time = time.time()
+    
+    try:
+        im = Image.open(input_file)
+        im.load()
+    except Exception as e:
+        print(f"\nError: Could not open image file: {e}")
+        sys.exit(1)
+    
+    width, height = im.size
+    print(f"\nInput:")
+    print(f"\tFile: {input_file}")
+    print(f"\tResolution: {width} x {height}")
+    
+    # Calculate split parameters
+    block_size = JPEG_SPLIT_HEIGHT
+    num_splits = math.ceil(height / block_size)
+    
+    print(f"\tSplits: {num_splits} (block size: {block_size}px)")
+    
+    # Temporary files for each split
+    temp_files = []
+    lenbuf = []
+    
+    try:
+        # Process each split
+        row_remaining = height
+        for i in range(num_splits):
+            if row_remaining < block_size:
+                crop = im.crop((0, i * block_size, width, row_remaining + i * block_size))
+            else:
+                crop = im.crop((0, i * block_size, width, block_size + i * block_size))
+            
+            row_remaining -= block_size
+            
+            # Save split as temporary JPEG
+            temp_file = f"{i}.jpg"
+            temp_files.append(temp_file)
+            crop.save(temp_file, quality=90)
+            lenbuf.append(os.path.getsize(temp_file))
+        
+        # Read all split data
+        sjpeg_data = bytearray()
+        for temp_file in temp_files:
+            with open(temp_file, 'rb') as f:
+                sjpeg_data.extend(f.read())
+        
+        # Build header
+        header = bytearray()
+        
+        # Magic number "_SJPG__" (7 bytes)
+        header.extend(b"_SJPG__")
+        
+        # Version string with padding (6 bytes)
+        version_str = "\x00" + SJPG_FILE_FORMAT_VERSION + "\x00"
+        header.extend(version_str.encode('UTF-8'))
+        
+        # Width (2 bytes, little endian)
+        header.extend(width.to_bytes(2, byteorder='little'))
+        
+        # Height (2 bytes, little endian)
+        header.extend(height.to_bytes(2, byteorder='little'))
+        
+        # Number of splits (2 bytes, little endian)
+        header.extend(num_splits.to_bytes(2, byteorder='little'))
+        
+        # Block size (2 bytes, little endian)
+        header.extend(block_size.to_bytes(2, byteorder='little'))
+        
+        # Length of each split (2 bytes each, little endian)
+        for item_len in lenbuf:
+            header.extend(item_len.to_bytes(2, byteorder='little'))
+        
+        # Combine header and data
+        sjpeg = header + sjpeg_data
+        
+        # Write binary output file
+        output_sjpg = f"{output_name}.sjpg"
+        with open(output_sjpg, 'wb') as f:
+            f.write(sjpeg)
+        
+        # Generate C array code
+        c_code = f"// LVGL SJPG C Array - Generated by jpg_to_sjpg.py\n"
+        c_code += f"// Image: {input_file}\n"
+        c_code += f"// Resolution: {width} x {height}\n"
+        c_code += f"#include \"lvgl/lvgl.h\"\n\n"
+        c_code += f"const uint8_t {output_name}_map[] = {{\n"
+        
+        # Write bytes with formatting (16 bytes per line)
         new_line_threshold = 0
+        for i in range(len(sjpeg)):
+            c_code += f"\t0x{sjpeg[i]:02X},"
+            new_line_threshold += 1
+            if new_line_threshold >= 16:
+                c_code += "\n"
+                new_line_threshold = 0
+        
+        c_code += "\n};\n\n"
+        c_code += f"lv_img_dsc_t {output_name} = {{\n"
+        c_code += f"\t.header.always_zero = 0,\n"
+        c_code += f"\t.header.w = {width},\n"
+        c_code += f"\t.header.h = {height},\n"
+        c_code += f"\t.data_size = {len(sjpeg)},\n"
+        c_code += f"\t.header.cf = LV_IMG_CF_RAW,\n"
+        c_code += f"\t.data = {output_name}_map,\n"
+        c_code += f"}};\n"
+        
+        # Write C array file
+        output_c = f"{output_name}.c"
+        with open(output_c, 'w') as f:
+            f.write(c_code)
+        
+        # Clean up temporary files
+        for temp_file in temp_files:
+            try:
+                os.remove(temp_file)
+            except OSError:
+                pass  # Ignore cleanup errors
+        
+        # Print results
+        time_taken = time.time() - start_time
+        print(f"\nOutput:")
+        print(f"\tTime taken: {time_taken:.2f} sec")
+        print(f"\tBinary size: {len(sjpeg) / 1024:.1f} KB")
+        print(f"\t{output_sjpg}\t(binary file)")
+        print(f"\t{output_c}\t(C array header)")
+        print(f"\nAll good!\n")
+        
+    except Exception as e:
+        print(f"\nError during conversion: {e}")
+        # Clean up on error
+        for temp_file in temp_files:
+            try:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+            except OSError:
+                pass
+        sys.exit(1)
 
-
-c_code = c_code + "\n};\n\nlv_img_dsc_t "
-c_code = c_code + OUTPUT_FILE_NAME + " = {\n"
-c_code = c_code + "\t.header.always_zero = 0,\n"
-c_code = c_code + "\t.header.w = " + str(width) + ",\n"
-c_code = c_code + "\t.header.h = " + str(height) + ",\n"
-c_code = c_code + "\t.data_size = " + str(len(sjpeg)) + ",\n"
-c_code = c_code + "\t.header.cf = LV_IMG_CF_RAW,\n"
-c_code = c_code + "\t.data = " + OUTPUT_FILE_NAME+"_map" + ",\n};"
-
-
-f = open(OUTPUT_FILE_NAME + '.c', 'w')
-f.write(c_code)
-f.close()
-
-
-time_taken = (time.time() - start_time)
-
-print("Output:")
-print("\tTime taken = " + str(round(time_taken,2)) + " sec")
-print("\tbin size = " + str(round(len(sjpeg)/1024, 1)) + " KB" )
-print("\t" + OUTPUT_FILE_NAME + ".sjpg\t(bin file)" + "\n\t" + OUTPUT_FILE_NAME + ".c\t\t(c array)")
-
-print("\nAll good!")
+if __name__ == "__main__":
+    main()

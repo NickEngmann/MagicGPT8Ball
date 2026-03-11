@@ -87,8 +87,13 @@
  *It removes the need to manually update the tick with `lv_tick_inc()`)*/
 #define LV_TICK_CUSTOM 1
 #if LV_TICK_CUSTOM
-    #define LV_TICK_CUSTOM_INCLUDE "Arduino.h"         /*Header for the system time function*/
-    #define LV_TICK_CUSTOM_SYS_TIME_EXPR (millis())    /*Expression evaluating to current system time in ms*/
+    #ifdef NATIVE_BUILD
+        #define LV_TICK_CUSTOM_INCLUDE "time.h"         /*Header for the system time function*/
+        #define LV_TICK_CUSTOM_SYS_TIME_EXPR (0)    /*Expression evaluating to current system time in ms*/
+    #else
+        #define LV_TICK_CUSTOM_INCLUDE "Arduino.h"         /*Header for the system time function*/
+        #define LV_TICK_CUSTOM_SYS_TIME_EXPR (millis())    /*Expression evaluating to current system time in ms*/
+    #endif
     /*If using lvgl as ESP32 component*/
     // #define LV_TICK_CUSTOM_INCLUDE "esp_timer.h"
     // #define LV_TICK_CUSTOM_SYS_TIME_EXPR ((esp_timer_get_time() / 1000LL))
