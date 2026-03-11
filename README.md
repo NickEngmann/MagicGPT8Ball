@@ -179,6 +179,53 @@ The Magic (GPT)8 Ball is a modern reinvention of the classic fortune-telling toy
 - Yellow blink: Offline mode
 - Purple blink: Error state
 
+## Build Verification & Testing
+
+### PlatformIO Build Verification
+
+The project uses PlatformIO as the exclusive build system. You can verify builds in the container environment:
+
+```bash
+# Install PlatformIO globally
+pip install --no-cache-dir platformio
+
+# Navigate to project directory
+cd /workspace/repo
+
+# Install dependencies
+pio install
+
+# Build firmware (verifies compilation without hardware)
+pio run
+
+# Upload to connected ESP32-S3 device
+pio run --target upload
+
+# Open serial monitor for debugging
+pio monitor
+```
+
+### Testing Limitations
+
+This is an embedded hardware project that requires physical ESP32-S3 hardware for full validation:
+
+- **Build verification**: `pio run` compiles successfully in container environment
+- **Unit tests**: Not applicable - project is hardware firmware
+- **Integration tests**: Require physical hardware with:
+  - QMI8658 6-axis IMU sensor
+  - MAX9814 I2S microphone array
+  - 1.28" TFT display with LVGL graphics
+  - Vibration motors and RGB LED
+  - WiFi connectivity for API calls
+
+### Hardware Simulation
+
+While full functionality requires physical hardware, you can:
+1. Verify compilation with `pio run`
+2. Analyze build output with GDB for logic testing
+3. Test non-hardware-dependent code paths
+4. Mock sensor data in simulation environments
+
 ## Advanced Features
 
 ### Debug Mode
