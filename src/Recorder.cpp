@@ -194,25 +194,46 @@ bool VoiceActivatedRecorder::begin()
         if (audioBuffer)
         {
             DEBUG_PRINTF("Using PSRAM for audio buffer (%d bytes)\n", BUFFER_SIZE);
+            monitorMemory();
+        }
+        else
+        {
+            DEBUG_PRINT("PSRAM allocation failed, trying regular RAM...");
         }
     }
 
+    // Fall back to regular malloc if PSRAM unavailable or failed
     if (!audioBuffer)
     {
-        DEBUG_PRINT("PSRAM allocation failed, recording won't be possible");
-        return false;
+        audioBuffer = (uint8_t *)malloc(BUFFER_SIZE);
+        if (audioBuffer)
+        {
+            DEBUG_PRINTF("Using regular RAM for audio buffer (%d bytes)\n", BUFFER_SIZE);
+            monitorMemory();
+        }
+        else
+        {
+            DEBUG_PRINT("ERROR: Failed to allocate audio buffer");
+            DEBUG_PRINTF("Available Heap: %d bytes\n", initialFreeHeap);
+            DEBUG_PRINTF("Required: %d bytes\n", BUFFER_SIZE);
+            return false;
+        }
     }
+
+    // Zero out the buffer
+    memset(audioBuffer, 0, BUFFER_SIZE);
 
     // Setup ADC for microphone input
     setupADC();
     if (!adc_chars)
     {
         DEBUG_PRINT("ADC setup failed");
+        free(audioBuffer);
+        audioBuffer = nullptr;
         return false;
     }
     DEBUG_PRINTF("MAX9814 Setup - DC Bias: %dmV, Max Vpp: %dmV\n",
                  DC_OFFSET, MAX9814_VPP);
-    monitorMemory();
     return true;
 }
 
