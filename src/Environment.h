@@ -32,6 +32,9 @@ public:
       return false;
     }
 
+    _valtownUrl = "";
+    _deviceToken = "";
+
     while (file.available())
     {
       String line = file.readStringUntil('\n');
@@ -52,7 +55,7 @@ public:
         value.trim();
 
         // Remove quotes if present
-        if (value.startsWith("\"") && value.endsWith("\""))
+        if (value.startsWith("\"") && value.endsWith("\"") && value.length() >= 2)
         {
           value = value.substring(1, value.length() - 1);
         }
@@ -62,6 +65,22 @@ public:
     }
 
     file.close();
+
+    // Validate required environment variables
+    if (_valtownUrl.isEmpty() || _deviceToken.isEmpty())
+    {
+      Serial.println("Warning: Incomplete .env configuration");
+      if (_valtownUrl.isEmpty())
+      {
+        Serial.println("Missing: VALTOWN_URL");
+      }
+      if (_deviceToken.isEmpty())
+      {
+        Serial.println("Missing: DEVICE_TOKEN");
+      }
+      return false;
+    }
+
     return true;
   }
 
@@ -72,6 +91,19 @@ public:
     if (key == "DEVICE_TOKEN")
       return _deviceToken;
     return "";
+  }
+
+  // Validate that all required environment variables are set
+  static bool isValid()
+  {
+    return !_valtownUrl.isEmpty() && !_deviceToken.isEmpty();
+  }
+
+  // Get available environment variables as a list
+  static void getAvailableKeys(StringArray &keys)
+  {
+    keys.add("VALTOWN_URL");
+    keys.add("DEVICE_TOKEN");
   }
 
 private:
