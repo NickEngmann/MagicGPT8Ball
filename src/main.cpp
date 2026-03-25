@@ -12,6 +12,7 @@
 #include "VibrationManager.h"
 #include "LEDLogger.h"
 #include "Environment.h"
+#include "TelemetryLogger.h"
 
 // Display configuration
 static const uint16_t screenWidth = 240;
@@ -24,6 +25,7 @@ AnimationManager animations(screenWidth, screenHeight);
 TextStateManager textManager;
 VibrationManager vibration(45,46);
 LEDLogger ledLogger(3);
+TelemetryLogger telemetry;
 
 // State variables
 bool isShaking = false;
@@ -76,6 +78,8 @@ void uploadWAVFile(uint8_t *buffer, size_t bufferSize)
     animations.setTriangleColor(255, 0, 0);
     textManager.setState(TextStateManager::DisplayState::RESPONSE,
                          String("Error: Missing configuration"));
+    telemetry.logError("Missing VALTOWN_URL or DEVICE_TOKEN");
+    telemetry.logApiRequest(false, 0);
     return;
   }
 
@@ -142,6 +146,19 @@ void uploadWAVFile(uint8_t *buffer, size_t bufferSize)
       textManager.update(currentTime);
       animations.setLabelText(textManager.getCurrentText().c_str());
       lv_timer_handler();
+      
+      // Log API response telemetry
+      bool success = doc["success"].as<bool>();
+      if (success) {
+        const char *gptResponse = doc["response"].as<const char *>();
+        std::string responseText = gptResponse ? gptResponse : "No response";
+        telemetry.logResponseShown(responseText, responseDisplayStart);
+        telemetry.logApiRequest(true, 0);
+      } else {
+        telemetry.logError("API returned success=false");
+        telemetry.logApiRequest(false, 0);
+      }
+      
       // Print debug information
       Serial.println("\n=== API Response Debug Info ===");
 
@@ -220,6 +237,8 @@ void uploadWAVFile(uint8_t *buffer, size_t bufferSize)
       animations.setTriangleColor(255, 0, 0);
       textManager.setState(TextStateManager::DisplayState::RESPONSE,
                            String("Error: Failed to parse response"));
+      telemetry.logError("JSON parsing failed");
+      telemetry.logApiRequest(false, 0);
     }
   }
   else
@@ -228,6 +247,8 @@ void uploadWAVFile(uint8_t *buffer, size_t bufferSize)
     animations.setTriangleColor(255, 0, 0);
     textManager.setState(TextStateManager::DisplayState::RESPONSE,
                          String("Error: Failed to connect"));
+    telemetry.logError("HTTP connection failed");
+    telemetry.logApiRequest(false, 0);
   }
 
   http.end();
@@ -311,16 +332,23 @@ void uploadWAVFileLocal(uint8_t *buffer, size_t bufferSize)
 void updateWiFiStatus(void *parameter)
 {
   TextStateManager *textManager = (TextStateManager *)parameter;
+  bool lastConnected = true;
   for (;;)
   {
     if (WiFi.status() != WL_CONNECTED)
     {
+      if (lastConnected) {
+        // Just transitioned to disconnected state
+        telemetry.logWifiError();
+        lastConnected = false;
+      }
       textManager->setState(TextStateManager::DisplayState::ERROR);
       ledLogger.setState(LEDLogger::SystemState::ERROR, LEDLogger::LEDPattern::BLINK);
     }
     else if (textManager->getState() == TextStateManager::DisplayState::ERROR)
     {
       textManager->setState(TextStateManager::DisplayState::IDLE);
+      lastConnected = true;
     }
     vTaskDelay(pdMS_TO_TICKS(30000));
   }
@@ -413,6 +441,10 @@ void setup()
     Serial.println("Audio recorder initialized successfully");
   }
 
+  // Initialize telemetry logger
+  telemetry.begin();
+  telemetry.logStartup();
+
   // Random seed for responses
   randomSeed(analogRead(2));
 
@@ -462,6 +494,9 @@ void loop()
     if (checkForShake() && !recordingTriggered &&
         textManager.getState() == TextStateManager::DisplayState::IDLE)
     {
+      // Log telemetry event
+      telemetry.logShake();
+      
       // Start new recording session
       recordingTriggered = true;
       isShaking = true;
@@ -490,6 +525,10 @@ void loop()
         vibration.update();
         isShowingResponse = true;
         responseStartTime = currentTime;
+        
+        // Log recording start telemetry
+        telemetry.logRecordingStart();
+        
         if (WiFi.status() == WL_CONNECTED)
         {
           // Upload the WAV file
@@ -519,6 +558,10 @@ void loop()
       // Check if we've shown the response long enough
       else if (currentTime - responseStartTime >= RESPONSE_DISPLAY_DURATION)
       {
+        // Log telemetry for completed recording cycle
+        int recordingDuration = currentTime - responseStartTime;
+        telemetry.logRecordingComplete(true, recordingDuration);
+        
         // Reset all states
         vibration.stop();
         recordingTriggered = false;
