@@ -244,6 +244,131 @@ Customize animations in `Animations.h`:
 - "Error: processing request" - API communication failed
 - "Error: recording failed" - Audio capture issue
 
+<<<<<<< Updated upstream
+=======
+## Build Configuration
+
+### PlatformIO Setup
+
+**Board**: waveshare_esp32_s3
+**Framework**: Arduino
+**Platform**: espressif32@6.5.0
+**Monitor Speed**: 115200 baud
+
+**Build Commands**:
+
+```bash
+# Install library dependencies
+pio lib install
+
+# Build and upload firmware
+pio run --target upload
+
+# Upload filesystem only
+pio run -t uploadfs
+
+# Monitor serial output
+pio mon
+
+# Clean build artifacts
+pio run --target clean
+```
+
+### Memory Configuration
+
+- **Flash**: 16MB
+- **PSRAM**: 8MB Quad SPI
+- **Filesystem**: LittleFS (8MB partition)
+- **Partitions**: default_8MB.csv
+
+### Build System
+
+Custom build scripts in `platformio.ini`:
+- `generate_env.py` — Pre-build script that copies `.env` or `.env.example` to data directory
+- LittleFS integration for environment variables storage
+
+### Docker Support
+
+Development can be performed in a Docker sandbox using:
+- Image: `gcc:14`
+- Command: `make test` for running pytest test suite
+
+## Testing
+
+### Test Suite Overview
+
+The project includes comprehensive test suites using pytest for Python and Unity for C++ to validate module functionality without requiring hardware:
+
+**Test Framework**: pytest 7.4.4 (Python 3.12.3), Unity (C++)
+**Test Command**: `make test`, `pytest test/ -v`, or `python3 test_runner.py`
+**Current Status**: 132 Python tests passed (100% pass rate)
+
+### Test Files
+
+#### Python Tests
+
+| Test File | Tests | Module | Description |
+|-----------|-------|--------|-------------|
+| `test_integration_py.py` | 48 | Integration | Complete user journey flow tests |
+| `test_integration_py_test.py` | 48 | Integration | Additional integration scenarios |
+| `test_led_logger_py.py` | 9 | LEDLogger | RGB LED state and pattern tests |
+| `test_recorder_py.py` | 9 | Recorder | Audio recording and buffer tests |
+| `test_text_state_manager_py.py` | 16 | TextStateManager | Display state management tests |
+| `test_vibration_manager_py.py` | 9 | VibrationManager | Motor control and timing tests |
+| `test_environment_py.py` | 15 | Environment | Configuration and parsing tests |
+| `test_native_tests.py` | 18 | Verification | Verifies C++ test file existence |
+
+#### C++ Native Tests (Unity Framework)
+
+| Test File | Tests | Module | Description |
+|-----------|-------|--------|-------------|
+| `test_native/test_environment.c` | 9 | Environment | .env file parsing tests |
+| `test_native/test_recorder.c` | 11 | Recorder | Audio sampling tests |
+| `test_native/test_vibration_manager.c` | 9 | Vibration | Motor control tests |
+| `test_native/test_led_logger.c` | 11 | LED | State and pattern tests |
+| `test_native/test_text_state_manager.c` | 11 | State | State machine tests |
+| `test_native/test_wav_upload.c` | 12 | WAV | Upload and validation tests |
+
+### Running Tests
+
+```bash
+# Run all tests using pytest
+make test
+
+# Run all tests using the test runner
+python3 test_runner.py
+
+# Run with verbose output
+pytest test/ -v
+
+# Run specific test file
+pytest test/test_led_logger_py.py -v
+
+# Run with coverage
+pytest test/ -v --cov=. --cov-report=html
+```
+
+### Test Coverage
+
+- **Unit Tests**: Individual module validation (LEDLogger, Recorder, TextStateManager, VibrationManager, Environment, WAV Upload)
+- **Integration Tests**: Complete workflow scenarios (shake → record → upload → response)
+- **Configuration Tests**: Audio parameters, pin assignments, timing constants
+- **Error Handling**: WiFi disconnection, upload failures, invalid configurations
+- **File Integrity**: WAV header structure validation, sample rate verification
+
+All tests use mocked implementations to avoid hardware dependencies, allowing CI/CD integration and rapid development iteration.
+
+### Native Test Directory
+
+See `test/README.md` for detailed documentation on test structure, coverage, and examples.
+
+## Documentation
+
+- **MARISOL.md** - Pipeline context with build, test, and history information
+- **Source Code** - Individual module documentation in header files
+- **PlatformIO Docs** - https://docs.platformio.org/
+
+>>>>>>> Stashed changes
 ## Contributing
 
 1. Fork the repository
