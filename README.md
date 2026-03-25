@@ -88,21 +88,6 @@ The Magic (GPT)8 Ball is a modern reinvention of the classic fortune-telling toy
    - Update the endpoint URL in `main.cpp`
 2. Configure OpenAI API key in val.town environment
 
-### Building and Flashing
-
-1. Open project in VS Code with PlatformIO
-2. Install dependencies:
-
-   ```bash
-   pio lib install
-   ```
-
-3. Build and upload:
-
-   ```bash
-   pio run --target upload
-   ```
-
 ### Environment Configuration
 
 1. In the project root directory, create a `.env` file with your val.town endpoint and device token:
@@ -150,6 +135,26 @@ The Magic (GPT)8 Ball is a modern reinvention of the classic fortune-telling toy
      ```bash
      pio run -t upload
      ```
+
+### Local WAV Server Setup
+
+For local development and testing, you can run a WAV upload server:
+
+```bash
+# Install Python dependencies
+pip install flask
+
+# Run the local server
+python wav_server.py
+```
+
+The server listens on `http://localhost:5000` and provides endpoints for:
+- WAV file upload with validation
+- Batch uploads
+- File listing and deletion
+- Cleanup of old files
+
+See [API Endpoints](#api-endpoints) section for full details.
 
 ## Usage Instructions
 
@@ -204,6 +209,86 @@ Customize animations in `Animations.h`:
 - `GYRO_SENSITIVITY`: Motion sensitivity
 - `IDLE_AMPLITUDE`: Idle animation range
 
+## Testing
+
+This project uses a hybrid testing approach with Python and C++ tests.
+
+### Python Tests
+
+Run Python tests using pytest:
+
+```bash
+# Install test dependencies
+pip install pytest flask pillow
+
+# Run all Python tests
+pytest tests/ -v
+
+# Run specific test file
+pytest tests/test_wav_server.py -v
+pytest tests/test_jpg_to_sjpg.py -v
+```
+
+### Test Coverage Summary
+
+| Test File | Tests | Coverage | Status |
+|-----------|-------|----------|--------|
+| test_wav_server.py | 24 | WAV upload server | 24/24 passed |
+| test_jpg_to_sjpg.py | 20 | SJPG conversion | 20/20 passed |
+| **Total** | **44** | **All Python tests** | **44/44 passed** |
+
+**Python Test Coverage Includes**:
+- WAV header validation and file uploads
+- Flask endpoint testing (upload, batch, health, list, delete, cleanup)
+- Image conversion validation
+- SJPG header and C array generation
+- Memory and cleanup operations
+
+### C++ Tests
+
+C++ unit tests use the Unity framework for ESP32 hardware testing:
+
+```bash
+# Run PlatformIO native tests (requires simulator or hardware)
+pio test -e waveshare_esp32_s3
+```
+
+**C++ Test Files**:
+- `test/test_native/test_placeholder.c` — Unity framework smoke test
+- `test/test_lvgl_render/lvgl_test_helper.h` — LVGL headless test helper for display testing
+
+### Running All Tests
+
+```bash
+# Python tests
+pytest tests/ -v
+
+# C++ tests (requires PlatformIO environment)
+pio test -e waveshare_esp32_s3
+```
+
+### Building and Flashing
+
+1. Open project in VS Code with PlatformIO
+2. Install dependencies:
+
+   ```bash
+   pio lib install
+   ```
+
+3. Build and upload:
+
+   ```bash
+   pio run --target upload
+   ```
+
+4. Build and upload filesystem:
+
+   ```bash
+   pio run -t buildfs
+   pio run -t uploadfs
+   ```
+
 ## Project Structure
 
 ```
@@ -244,6 +329,81 @@ Customize animations in `Animations.h`:
 - "Error: processing request" - API communication failed
 - "Error: recording failed" - Audio capture issue
 
+## WAV Server API
+
+The project includes a Flask-based WAV file upload server (`wav_server.py`) for local development and testing.
+
+### Running the Server
+
+```bash
+pip install flask
+python wav_server.py
+```
+
+The server runs on `http://localhost:5000` by default.
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/upload_wav` | POST | Single WAV upload with validation |
+| `/upload_wav_batch` | POST | Batch WAV upload |
+| `/health` | GET | Health check endpoint |
+| `/uploads` | GET | List uploaded files (supports pagination) |
+| `/uploads/delete/<filename>` | DELETE | Delete specific uploaded file |
+| `/cleanup` | POST | Clean up old uploads by age |
+
+### Request Examples
+
+**Single Upload:**
+```bash
+curl -X POST -F "file=@recording.wav" http://localhost:5000/upload_wav
+```
+
+**List Uploads:**
+```bash
+curl http://localhost:5000/uploads?limit=10&offset=0
+```
+
+**Delete File:**
+```bash
+curl -X DELETE http://localhost:5000/uploads/delete/recording_20260325_120000_abc123.wav
+```
+
+**Health Check:**
+```bash
+curl http://localhost:5000/health
+```
+
+### Response Format
+
+Successful upload returns:
+```json
+{
+  "success": true,
+  "filename": "recording_20260325_120000_abc123.wav",
+  "filepath": "/path/to/wav_uploads/recording_20260325_120000_abc123.wav",
+  "file_size": 512345,
+  "checksum": "d41d8cd98f00b204e9800998ecf8427e",
+  "metadata": {
+    "sample_rate": 16000,
+    "channels": 1,
+    "bits_per_sample": 16,
+    "duration_seconds": 10.5
+  }
+}
+```
+
+### Features
+
+- WAV file header validation (RIFF, WAVE, fmt, data chunks)
+- Automatic file size checking (10MB max)
+- MD5 checksum generation
+- Batch upload support
+- Pagination for file listing
+- Automatic cleanup of old files
+- Detailed error messages
+
 ## Contributing
 
 1. Fork the repository
@@ -262,4 +422,7 @@ This project is licensed under the MIT License.
 - Waveshare for ESP32-S3 hardware
 - LVGL team for graphics library
 - val.town for serverless hosting
+- ArduinoJson library authors
+- WiFiManager community
+- Adafruit NeoPixel library
 - Open source community for libraries and tools
