@@ -207,16 +207,53 @@ Customize animations in `Animations.h`:
 ## Project Structure
 
 ```
-├── src/
-│   ├── main.cpp              # Main application logic
-│   ├── Animations.*          # Display animations
-│   ├── Recorder.*           # Audio recording
-│   ├── TextStateManager.*   # Display text handling
-│   ├── VibrationManager.*   # Haptic feedback
-│   └── LEDLogger.*         # RGB LED control
-├── lib/
-│   └── QMI8658/            # IMU driver
-└── val.town.js             # Serverless API handler
+MagicGPT8Ball/
+├── src/                    # Main application source code
+│   ├── main.cpp           # Application entry point and main loop
+│   ├── Animations.cpp     # Display animation implementations
+│   ├── Animations.h       # Animation module interface
+│   ├── Recorder.cpp       # Audio recording and voice detection
+│   ├── Recorder.h         # Recorder module interface
+│   ├── TextStateManager.cpp # Display text state management
+│   ├── TextStateManager.h # Text state manager interface
+│   ├── VibrationManager.h # Haptic feedback control
+│   ├── LEDLogger.cpp      # RGB LED state machine
+│   ├── LEDLogger.h        # LED control interface
+│   ├── TelemetryLogger.h  # Event logging and metrics
+│   └── Environment.h      # Environment variable handling
+├── lib/                    # External libraries
+│   ├── lvgl/              # LVGL graphics library
+│   ├── TFT_eSPI/          # Display driver library
+│   ├── TFT_eSPI_Setups/   # Custom TFT_eSPI configurations
+│   └── QMI8658/           # IMU sensor driver
+├── test/                   # Test suite
+│   ├── test_native/       # C++ Unity framework tests
+│   │   ├── test_environment.c    # Environment module tests
+│   │   ├── test_recorder.c       # Recorder module tests
+│   │   ├── test_vibration_manager.c # Vibration tests
+│   │   ├── test_led_logger.c     # LED logger tests
+│   │   ├── test_text_state_manager.c # Text state tests
+│   │   ├── test_wav_upload.c     # WAV header tests
+│   │   ├── test_placeholder.c    # Framework smoke tests
+│   │   └── test_telemetry_logger.c # Telemetry tests
+│   ├── test_lvgl_render/      # LVGL rendering tests
+│   │   └── test_render.c         # Display rendering tests
+│   ├── test_generate_env.py     # Build script tests
+│   ├── test_wav_server.py       # Server tests
+│   ├── test_jpg_to_sjpg.py      # Image conversion tests
+│   ├── test_telemetry_logger_py.py # Telemetry tests
+│   └── test_runner.py           # Unified test runner
+├── data/                   # Generated data (build output)
+├── boards/                 # Board-specific configurations
+├── hardware/               # Hardware documentation
+├── img/                    # Images and diagrams
+├── wav_uploads/           # Test WAV file uploads
+├── val.town.js            # Serverless API handler
+├── generate_env.py        # Build-time environment setup
+├── wav_server.py          # Test WAV upload server
+├── platformio.ini         # PlatformIO build configuration
+├── .env.example           # Environment variable template
+└── test_runner.py         # Unified test runner
 ```
 
 ## Troubleshooting
@@ -243,6 +280,70 @@ Customize animations in `Animations.h`:
 - "Wifi: X" - No network connection
 - "Error: processing request" - API communication failed
 - "Error: recording failed" - Audio capture issue
+
+## Testing
+
+### Test Suite Overview
+
+The project includes a comprehensive test suite with 108 tests covering Python utilities and C++ native modules.
+
+**Test Coverage:**
+
+| Test Suite | Type | Tests | Coverage |
+|------------|------|-------|----------|
+| `test_native/` | C++ Unity | 64 tests | Core modules: Recorder, VibrationManager, LEDLogger, TextStateManager, Environment |
+| `test_lvgl_render/` | C++ Unity | 8 tests | LVGL rendering functionality |
+| `test_generate_env.py` | Python unittest | 14 tests | Environment file generation |
+| `test_wav_server.py` | Python unittest | 12 tests | Flask WAV upload server |
+| `test_jpg_to_sjpg.py` | Python unittest | 24 tests | LVGL SJPG conversion |
+| `test_telemetry_logger_py.py` | Python unittest | 17 tests | Telemetry logging |
+| **Total** | | **139 tests** | |
+
+### Running Tests
+
+**Python Tests:**
+
+```bash
+cd test
+python3 -m pytest . -v
+```
+
+**C++ Native Tests:**
+
+```bash
+python3 test_runner.py
+```
+
+**Individual Python Test Files:**
+
+```bash
+python3 test/test_generate_env.py
+python3 test/test_wav_server.py
+python3 test/test_jpg_to_sjpg.py
+python3 test/test_telemetry_logger_py.py
+```
+
+### Test File Locations
+
+```
+test/
+├── test_native/           # C++ Unity framework tests
+│   ├── test_environment.c     # 8 tests - Environment variable loading
+│   ├── test_recorder.c        # 6 tests - Audio recording functionality
+│   ├── test_vibration_manager.c # 7 tests - Vibration motor control
+│   ├── test_led_logger.c      # 7 tests - RGB LED state machine
+│   ├── test_text_state_manager.c # 10 tests - Display text state transitions
+│   ├── test_wav_upload.c      # 6 tests - WAV file header structure
+│   ├── test_placeholder.c     # 10 tests - Unity framework smoke tests
+│   └── test_telemetry_logger.c # 12 tests - Telemetry logging
+├── test_lvgl_render/         # LVGL rendering tests
+│   └── test_render.c           # 8 tests - Display rendering
+├── test_generate_env.py      # 14 tests - Environment generation
+├── test_wav_server.py        # 12 tests - WAV upload server
+├── test_jpg_to_sjpg.py       # 24 tests - Image conversion
+├── test_telemetry_logger_py.py # 17 tests - Telemetry logging
+└── test_runner.py            # Unified test runner
+```
 
 ## Contributing
 
