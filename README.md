@@ -216,8 +216,32 @@ Customize animations in `Animations.h`:
 │   └── LEDLogger.*         # RGB LED control
 ├── lib/
 │   └── QMI8658/            # IMU driver
-└── val.town.js             # Serverless API handler
+├── tests/                  # Python unit and integration tests
+│   ├── test_wav_server.py   # WAV server tests
+│   ├── test_jpg_to_sjpg.py  # Image conversion tests
+│   ├── test_generate_env.py # Environment generation tests
+│   └── conftest.py         # pytest fixtures
+├── wav_server.py          # Flask upload server
+├── generate_env.py        # Pre-build environment script
+└── val.town.js            # Serverless API handler
 ```
+
+## Testing
+
+Run the Python test suite:
+
+```bash
+cd tests
+python -m pytest tests/ -v
+```
+
+Test coverage includes:
+- WAV file upload and validation
+- Flask API endpoints (upload, batch, health, list, delete, cleanup)
+- Image conversion (jpg_to_sjpg)
+- Environment file generation
+
+Test results: **90/90 Python tests passing**
 
 ## Troubleshooting
 
