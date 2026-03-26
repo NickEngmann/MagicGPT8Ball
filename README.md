@@ -207,18 +207,81 @@ Customize animations in `Animations.h`:
 ## Project Structure
 
 ```
-├── src/
-│   ├── main.cpp              # Main application logic
-│   ├── Animations.*          # Display animations
-│   ├── Recorder.*           # Audio recording
-│   ├── TextStateManager.*   # Display text handling
-│   ├── VibrationManager.*   # Haptic feedback
+MagicGPT8Ball/
+├── src/                     # C++ Arduino source
+│   ├── main.cpp            # Main application logic
+│   ├── Animations.*        # Display animations
+│   ├── Recorder.*          # Audio recording
+│   ├── TextStateManager.*  # Display text handling
+│   ├── VibrationManager.*  # Haptic feedback
 │   └── LEDLogger.*         # RGB LED control
 ├── lib/
 │   └── QMI8658/            # IMU driver
+<<<<<<< Updated upstream
 └── val.town.js             # Serverless API handler
 ```
 
+=======
+├── test/
+│   ├── test_native/        # C++ Unity tests
+│   │   └── test_placeholder.c
+│   └── test_lvgl_render/   # LVGL headless test helper
+│       └── lvgl_test_helper.h
+├── tests/                  # Python pytest tests
+│   └── **EMPTY**           # Test files not yet created
+├── wav_server.py          # Flask upload server
+│   ├── validate_wav_header()      # WAV header validation
+│   ├── generate_checksum()       # MD5 checksum generation
+│   ├── cleanup_old_uploads()     # File cleanup by age
+│   ├── upload_wav()            # Single file upload endpoint
+│   ├── upload_wav_batch()      # Batch upload endpoint
+│   ├── health_check()          # Health endpoint
+│   ├── list_uploads()          # File listing with pagination
+│   ├── delete_upload()         # File deletion endpoint
+│   └── cleanup()               # Cleanup endpoint
+├── generate_env.py        # Pre-build environment script
+├── platformio.ini         # PlatformIO configuration
+├── .env.example           # Environment template
+└── val.town.js            # Serverless API handler
+```
+
+## Testing
+
+### C++ Tests
+
+**Unity Framework Tests** (test/test_native/):
+```bash
+pio test -e waveshare_esp32_s3
+```
+
+- test_placeholder.c — Unity smoke test
+
+### Python Tests
+
+The tests/ directory is currently empty. Python test files need to be created for:
+
+- test_wav_server.py — WAV server endpoint tests
+- test_generate_env.py — Environment file generation tests  
+- test_jpg_to_sjpg.py — Image conversion tests
+- conftest.py — pytest fixtures
+
+### wav_server.py API Endpoints
+
+The wav_server.py implementation includes the following endpoints:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check with server status |
+| `/upload_wav` | POST | Single WAV upload with validation |
+| `/upload_wav_batch` | POST | Batch WAV file upload |
+| `/uploads` | GET | List uploaded files with pagination |
+| `/uploads/delete/<filename>` | DELETE | Delete specific uploaded file |
+| `/uploads/checksum/<filename>` | GET | Get MD5 checksum of file |
+| `/cleanup` | POST | Clean up old uploaded files |
+
+**Note**: Additional endpoints are implemented in wav_server.py but not yet covered by Python test suite.
+
+>>>>>>> Stashed changes
 ## Troubleshooting
 
 ### Common Issues
