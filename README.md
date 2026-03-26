@@ -216,9 +216,80 @@ Customize animations in `Animations.h`:
 │   └── LEDLogger.*         # RGB LED control
 ├── lib/
 │   └── QMI8658/            # IMU driver
+<<<<<<< Updated upstream
 └── val.town.js             # Serverless API handler
 ```
 
+=======
+├── test/
+│   ├── test_native/        # C++ Unity tests
+│   │   └── test_placeholder.c
+│   └── test_lvgl_render/   # LVGL headless test helper
+│       └── lvgl_test_helper.h
+├── tests/                  # Python pytest tests
+│   ├── conftest.py        # pytest fixtures stub
+│   └── test_wav_server.py # WAV server tests (currently failing)
+├── wav_server.py          # Flask upload server
+│   ├── upload_wav()       # Single file upload (implemented)
+│   └── Other endpoints not yet implemented
+├── generate_env.py        # Pre-build environment script
+├── platformio.ini         # PlatformIO configuration
+├── .env.example           # Environment template
+├── val.town.js            # Serverless API handler
+└── wav_uploads/           # Upload storage directory
+```
+
+## Testing
+
+### C++ Tests
+
+**Unity Framework Tests** (test/test_native/):
+```bash
+pio test -e waveshare_esp32_s3
+```
+
+- test_placeholder.c — Unity smoke test
+
+### Python Tests
+
+**test_wav_server.py** — 38 tests for wav_server.py Flask upload server
+
+**Current Status**: All 38 tests are failing due to incomplete wav_server.py implementation.
+
+**Missing Functions**:
+- sanitize_filename() — Filename security sanitization
+- validate_wav_header() — WAV file header validation
+- generate_checksum() — MD5 checksum generation
+- cleanup_old_uploads() — File cleanup by age
+- health_check() — Server health status endpoint
+- list_uploads() — List uploaded files with pagination
+- delete_upload() — Delete specific uploaded files
+- get_checksum() — Return MD5 checksum of a file
+- cleanup() — Cleanup endpoint
+- upload_wav_batch() — Batch file upload endpoint
+
+**Test Results**:
+```bash
+pytest tests/test_wav_server.py -v
+```
+- 38 tests run
+- 38 failed (missing implementations)
+
+### wav_server.py API Endpoints
+
+The wav_server.py implementation includes the following endpoints:
+
+| Endpoint | Method | Status | Description |
+|----------|--------|--------|-------------|
+| `/upload_wav` | POST | **IMPLEMENTED** | Single WAV upload |
+| `/health` | GET | **MISSING** | Health check with server status |
+| `/upload_wav_batch` | POST | **MISSING** | Batch WAV file upload |
+| `/uploads` | GET | **MISSING** | List uploaded files with pagination |
+| `/uploads/delete/<filename>` | DELETE | **MISSING** | Delete specific uploaded file |
+| `/uploads/checksum/<filename>` | GET | **MISSING** | Get MD5 checksum of file |
+| `/cleanup` | POST | **MISSING** | Clean up old uploaded files |
+
+>>>>>>> Stashed changes
 ## Troubleshooting
 
 ### Common Issues
