@@ -256,6 +256,38 @@ Customize animations in `Animations.h`:
 
 This project is licensed under the MIT License.
 
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Follow existing code style
+4. Add unit tests if applicable
+5. Submit a pull request
+
+## Development & Testing
+
+### Running Tests
+
+#### Python Tests (WAV Server)
+```bash
+cd test
+python3 -m pytest test_wav_server.py -v
+```
+
+Test results: 22 tests covering upload validation, recording management, API endpoints, and error handling.
+
+### API Integration
+
+The device communicates with val.town serverless endpoints for:
+1. **Voice transcription** - OpenAI Whisper API converts audio to text
+2. **AI responses** - ChatGPT processes the transcribed question
+3. **File handling** - WAV files are uploaded via Flask server
+
+Local testing:
+- Run `wav_server.py` for local development
+- Use offline mode for testing without network connectivity
+- Enable `ENABLE_DEBUG` in Recorder.h and main.cpp for detailed logging
+
 ## Acknowledgments
 
 - OpenAI for ChatGPT and Whisper APIs
