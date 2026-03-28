@@ -207,6 +207,7 @@ Customize animations in `Animations.h`:
 ## Project Structure
 
 ```
+<<<<<<< Updated upstream
 ├── src/
 │   ├── main.cpp              # Main application logic
 │   ├── Animations.*          # Display animations
@@ -217,6 +218,82 @@ Customize animations in `Animations.h`:
 ├── lib/
 │   └── QMI8658/            # IMU driver
 └── val.town.js             # Serverless API handler
+=======
+MagicGPT8Ball/
+├── src/                     # C++ Arduino source
+│   ├── main.cpp            # Main application logic
+│   ├── Animations.*        # Display animations and LVGL rendering
+│   ├── Recorder.*          # Audio recording and voice detection
+│   ├── TextStateManager.h  # Display text state management
+│   ├── VibrationManager.h  # Dual motor haptic feedback
+│   ├── LEDLogger.*         # WS2812B RGB LED control
+│   ├── Environment.h       # LittleFS .env config loader
+│   └── val.town.js         # Serverless API handler
+├── lib/                     # PlatformIO libraries
+│   ├── lvgl/               # LVGL graphics library
+│   ├── TFT_eSPI/           # Display driver
+│   ├── QMI8658/            # IMU driver
+│   └── TFT_eSPI_Setups/    # Board-specific setup
+├── test/                    # C++ native tests
+│   ├── test_native/        # Unity framework tests
+│   │   └── test_placeholder.c  # Unity smoke test
+│   └── test_lvgl_render/   # LVGL headless test helper
+│       └── lvgl_test_helper.h
+├── tests/                   # Python pytest tests
+│   ├── conftest.py         # pytest fixtures stub
+│   └── test_wav_server.py  # Flask server tests (38 tests - failing)
+├── wav_server.py            # Flask WAV upload server (basic implementation)
+├── generate_env.py          # Pre-build .env deployment script
+├── platformio.ini           # PlatformIO build configuration
+├── .env.example             # Environment template
+├── wav_uploads/             # WAV upload storage directory
+└── data/                    # Built filesystem (LittleFS)
+```
+
+## Testing
+
+### C++ Tests
+
+**Unity Framework Tests** (test/test_native/):
+```bash
+pio test -e waveshare_esp32_s3
+```
+
+- test_placeholder.c — Unity smoke test verifying build system
+
+### Python Tests
+
+**test_wav_server.py** — Comprehensive test suite for wav_server.py
+
+**Current Status**: 38 tests defined, all currently failing due to incomplete wav_server.py implementation.
+
+**Existing Functionality** in wav_server.py:
+- `/upload_wav` POST — Basic single file upload (returns plain text response)
+
+**Tested but Not Implemented** functions:
+- `sanitize_filename()` — Filename security sanitization
+- `validate_wav_header()` — WAV file header validation (RIFF, WAVE, fmt, data chunks)
+- `generate_checksum()` — MD5 checksum generation
+- `cleanup_old_uploads()` — File cleanup by age
+- `health_check()` — Server health status endpoint
+- `list_uploads()` — List uploaded files with pagination
+- `delete_upload()` — Delete specific uploaded files
+- `get_checksum()` — Return MD5 checksum via endpoint
+- `cleanup()` — Cleanup endpoint
+- `upload_wav_batch()` — Batch file upload endpoint
+
+**Test Results**:
+```bash
+pytest tests/test_wav_server.py -v
+```
+- 38 tests collected
+- 38 failed (AttributeError: module has no attribute for missing functions)
+
+**To run tests**:
+```bash
+pip install pytest flask
+pytest tests/test_wav_server.py -v
+>>>>>>> Stashed changes
 ```
 
 ## Troubleshooting
